@@ -14,7 +14,7 @@ class Library(DatabaseConnection):
         except Exception as e:
             return {'Error':'Failed to fetch BOOKS table'}
     
-    def getgenrelist(self): 
+    def getgenreslist(self): 
         """
         Retrieves and prints the list of genres available in the library.
         """

@@ -3,6 +3,193 @@ from typing import Union,Dict,Tuple,List
 from Library import Library
 
 class LibraryManagement(DatabaseConnection):
+    '''
+        LibraryManagement:
+            This class is for managing the library assets like Genres, Authors and Books
+            We can Update, Delete or Create new entires of Genres, Author and Books
+        
+        Steps:
+            As we are using relational database MySQL We have Three main Tables one for Genres, One for Authors and one for Books.
+            So its necessary to Have Genre and Author available before adding Book entity into BOOKS Table
+            1) Enter The Genre if the Genre is not present in GENRES Table.
+            2) Enter Author if the Author is not present in AUTHORS Table.    
+            3) Enter Book 
+    '''
+
+    def insertgenres(self, data:Union[Tuple,List]) -> Dict:
+        '''
+            insertauthors:
+                This method will insert a single genre entry or you can insert multiple genres entries.
+            
+            Parameter:
+                data (Tuple): (GenreID ,GenreName,Descp)
+                    GenreID : Unique genre Id
+                    GenreName : Unique genre Name
+                    Descp : Biography about genre.
+
+                data (List): [
+                    (GenreID ,GenreName,Descp),
+                    (GenreID ,GenreName,Descp),
+                    (GenreID ,GenreName,Descp)
+                ]    
+        '''        
+        if not data:
+            return {'Error':'Please provide valid data to insert.'}
+        else:
+            if isinstance(data,tuple):
+                # Insert Single Author Entry into db
+                query = '''INSERT INTO GENRES (GenreID, GenreName, Descp)
+           VALUES (%s, %s, %s)'''
+                data = (data[0], data[1], data[2])
+    
+                result = self.execute_manipulation_query(query,data)
+                return result
+            
+            elif isinstance(data,list):
+                # Insert Multiple Author Entries into db
+                query = '''INSERT INTO GENRES (GenreID, GenreName, Descp)
+           VALUES (%s, %s, %s)'''
+                
+                for _ in data:
+                    result = self.execute_manipulation_query(query,_)    
+                return result
+            
+            else:   
+                return {'Error':'Please provide valid data to insert.'}        
+
+
+    def updategenres(self, data: Tuple, id: int) -> dict:
+        '''
+        updategenres:
+            This method is used to update a genre entry from GENRES Table.
+
+        Parameter:
+            data (Tuple): (GenreName, Descp)
+                        Note: If you don't want an attribute to change, just put None.
+                        Example: ('Fantasy', 'fantasy, dystopian, and steampunk.')
+        '''
+        if not data or not id:
+            return {'Error': 'Please provide valid data to update.'}
+        else:
+            query = ''' 
+                UPDATE GENRES 
+                SET 
+                    GenreName = CASE WHEN %s IS NOT NULL THEN %s ELSE GenreName END,
+                    Descp = CASE WHEN %s IS NOT NULL THEN %s ELSE Descp END
+                WHERE GenreID = %s;
+            '''
+            data = (data[0], data[0], data[1], data[1], id)
+
+            result = self.execute_manipulation_query(query, data)
+            return result
+
+
+    def deletegenres(self,id:int) -> Dict:
+        '''
+        updategenres:
+            This method is used to delete a genre entry from GENRES Table.
+
+        Parameter:
+            id (int): 
+        '''        
+        if not id:
+            return {'Error':'Please provide valid id to delete an entry.'}
+        else:
+            query = ''' DELETE FROM GENRES
+                        WHERE GenreID = %s
+                    '''    
+            data = (id,)
+            result = self.execute_manipulation_query(query,data)
+            return result
+
+    def insertauthors(self, data:Union[Tuple,List]) -> Dict:
+        '''
+            insertauthors:
+                This method will insert a single author entry or you can insert multiple authors entries.
+            
+            Parameter:
+                data (Tuple): (AuthorID ,AuthorName,Biography)
+                    AuthorID : Unique author Id
+                    AuthorName : Unique author Name
+                    Biography : Biography about author.
+
+                data (List): [
+                    (AuthorID ,AuthorName,Biography),
+                    (AuthorID ,AuthorName,Biography),
+                    (AuthorID ,AuthorName,Biography)
+                ]    
+        '''        
+        if not data:
+            return {'Error':'Please provide valid data to insert.'}
+        else:
+            if isinstance(data,tuple):
+                # Insert Single Author Entry into db
+                query = '''INSERT INTO AUTHORS (AuthorID, AuthorName, Biography)
+           VALUES (%s, %s, %s)'''
+                data = (data[0], data[1], data[2])
+    
+                result = self.execute_manipulation_query(query,data)
+                return result
+            
+            elif isinstance(data,list):
+                # Insert Multiple Author Entries into db
+                query = '''INSERT INTO AUTHORS (AuthorID, AuthorName, Biography)
+           VALUES (%s, %s, %s)'''
+                
+                for _ in data:
+                    result = self.execute_manipulation_query(query,_)    
+                return result
+            
+            else:   
+                return {'Error':'Please provide valid data to insert.'}    
+
+    
+    def updateauthors(self, data: Tuple, id: int) -> dict:
+        '''
+        updateauthors:
+            This method is used to update a author entry from AUTHORS Table.
+
+        Parameter:
+            data (Tuple): (AuthorName, Biography)
+                        Note: If you don't want an attribute to change, just put None.
+                        Example: ('Arthur Conan Doyle', 'Arthur Conan Doyle, dystopian, and steampunk.')
+        '''
+        if not data or not id:
+            return {'Error': 'Please provide valid data to update.'}
+        else:
+            query = ''' 
+                UPDATE AUTHORS 
+                SET 
+                    AuthorName = CASE WHEN %s IS NOT NULL THEN %s ELSE AuthorName END,
+                    Biography = CASE WHEN %s IS NOT NULL THEN %s ELSE Biography END
+                WHERE AuthorID = %s;
+            '''
+            data = (data[0], data[0], data[1], data[1], id)
+
+            result = self.execute_manipulation_query(query, data)
+            return result
+
+
+    def deleteauthors(self,id:int) -> Dict:
+        '''
+        deleteuthors:
+            This method is used to delete a author entry from AUTHORS Table.
+
+        Parameter:
+            id (int): 
+        '''        
+        if not id:
+            return {'Error':'Please provide valid id to delete an entry.'}
+        else:
+            query = ''' DELETE FROM AUTHORS
+                        WHERE AuthorID = %s
+                    '''    
+            data = (id,)
+            result = self.execute_manipulation_query(query,data)
+            return result
+             
+    
+     
     def insertbooks(self, data:Union[Tuple,List]) -> Dict:
         '''
             insertbooks:
@@ -58,43 +245,3 @@ class LibraryManagement(DatabaseConnection):
             else:
                 return {'Error':'Please provide valid data to insert.'}    
             
-    def insertauthors(self, data:Union[Tuple,List]) -> Dict:
-        '''
-            insertauthors:
-                This method will insert a single author entry or you can insert multiple authors entries.
-            
-            Parameter:
-                data (Tuple): (AuthorID ,AuthorName,Biography)
-                    AuthorID : Unique author Id
-                    AuthorName : Unique author Name
-                    Biography : Biography about author.
-
-                data (List): [
-                    (AuthorID ,AuthorName,Biography),
-                    (AuthorID ,AuthorName,Biography),
-                    (AuthorID ,AuthorName,Biography)
-                ]    
-        '''        
-        if not data:
-            return {'Error':'Please provide valid data to insert.'}
-        else:
-            if isinstance(data,tuple):
-                # Insert Single Author Entry into db
-                query = '''INSERT INTO AUTHORS (AuthorID, AuthorName, Biography)
-           VALUES (%s, %s, %s)'''
-                data = (data[0], data[1], data[2])
-    
-                result = self.execute_manipulation_query(query,data)
-                return result
-            
-            elif isinstance(data,list):
-                # Insert Multiple Author Entries into db
-                query = '''INSERT INTO AUTHORS (AuthorID, AuthorName, Biography)
-           VALUES (%s, %s, %s)'''
-                
-                for _ in data:
-                    result = self.execute_manipulation_query(query,_)    
-                return result
-            
-            else:   
-                return {'Error':'Please provide valid data to insert.'}         
