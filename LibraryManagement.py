@@ -245,3 +245,90 @@ class LibraryManagement(DatabaseConnection):
             else:
                 return {'Error':'Please provide valid data to insert.'}    
             
+
+    def insertpatrons(self,data:Union[Tuple,List]) -> Dict:
+        '''
+            insertpatrons:
+                This method will insert a single patron entry or you can insert multiple patrons entries.
+            
+            Parameter:
+                data (Tuple): (PatrinID ,Name,ContactNumber,MembershipStatus)
+                    PatrinID : Patrin Id
+                    Name : Unique Patron Name
+                    ContactNumber : Unique ContactNumber
+                    MembershipStatus : Is Member or Not 
+
+                data (List): [
+                    (PatrinID ,Name,ContactNumber,MembershipStatus),
+                    (PatrinID ,Name,ContactNumber,MembershipStatus),
+                    (PatrinID ,Name,ContactNumber,MembershipStatus)
+                ]
+        '''
+        if not data:
+            return {'Error','Please provide valid data to insert.'}    
+        else:
+            if isinstance(data,tuple):
+                query = '''INSERT INTO PATRONS(PatronID ,Name,ContactNumber,MembershipStatus)
+                            VALUES
+                            (%s,%s,%s,%s);
+                        '''
+                data = (data[0],data[1],data[2],data[3])
+
+                result = self.execute_manipulation_query(query,data)
+                return result
+            elif isinstance(data,list):
+                query = '''INSERT INTO PATRONS(PatronID ,Name,ContactNumber,MembershipStatus)
+                            VALUES
+                            (%s,%s,%s,%s);
+                        '''
+                for _ in data:
+                    result = self.execute_manipulation_query(query,_)
+                return result
+
+            else:
+                return {'Error','Please provide valid data to insert.'}
+            
+    def updatepatrons(self, data: Tuple, id: int) -> dict:
+        '''
+        updateauthors:
+            This method is used to update a author entry from AUTHORS Table.
+
+        Parameter:
+            data (Tuple): (Name, ContactNumber,MembershipStatus)
+                        Note: If you don't want an attribute to change, just put None.
+                        Example: (None, None, True)
+        '''
+        if not data or not id:
+            return {'Error': 'Please provide valid data to update.'}
+        else:
+            query = ''' 
+                UPDATE PATRONS 
+                SET 
+                    Name = CASE WHEN %s IS NOT NULL THEN %s ELSE Name END,
+                    ContactNumber = CASE WHEN %s IS NOT NULL THEN %s ELSE ContactNumber END,
+                    MembershipStatus = CASE WHEN %s IS NOT NULL THEN %s ELSE MembershipStatus END
+                WHERE PatronID = %s;
+            '''
+            data = (data[0], data[0], data[1], data[1],data[2],data[2], id)
+
+            result = self.execute_manipulation_query(query, data)
+            return result
+
+
+    def deletepatrons(self,id:int) -> Dict:
+        '''
+        deletepatrons:
+            This method is used to delete a patron entry from PATRONS Table.
+
+        Parameter:
+            id (int): 
+        '''        
+        if not id:
+            return {'Error':'Please provide valid id to delete an entry.'}
+        else:
+            query = ''' DELETE FROM PATRONS
+                        WHERE PatronID = %s
+                    '''    
+            data = (id,)
+            result = self.execute_manipulation_query(query,data)
+            return result        

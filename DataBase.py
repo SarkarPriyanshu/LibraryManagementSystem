@@ -27,7 +27,7 @@ class DatabaseConnection:
         except mysql.connector.Error as e:
             raise DatabaseError(f'Failed to connect to the database: {e}')
 
-    def execute_select_query(self, query):
+    def execute_select_query(self, query,data=None):
         """
         Execute a SELECT query and retrieve the results.
 
@@ -41,11 +41,19 @@ class DatabaseConnection:
             DatabaseError: If an error occurs while executing the query.
         """
         try:
+            result = None
             cursor = self.connection.cursor()
-            cursor.execute(query)
-            result = cursor.fetchall()
+
+            if not data:
+                cursor.execute(query)
+                result = cursor.fetchall()
+            else:
+                cursor.execute(query, data)   
+                result = cursor.fetchall()
+
             cursor.close()
             return result
+        
         except mysql.connector.Error as e:
             raise DatabaseError(f'Selection query failed: {e}')
         
