@@ -7,6 +7,7 @@ manage = LibraryManagement()
 transaction = TransactionManagements()
 
 print(session.getpatronslist())
-print(transaction.FindBookISBN('To Kill a Mockingbird'))
+# print(transaction.FindPatronID('Divesh Sharma'))
+print(transaction.ReturnTransaction('Divesh Sharma','To Kill a Mockingbird',2))
 
 

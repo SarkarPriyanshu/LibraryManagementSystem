@@ -1,4 +1,6 @@
+import datetime
 from DataBase import DatabaseConnection
+from CustomExcepttion import CustomError
 from typing import Union,Dict,Tuple,List
 
 class TransactionManagements(DatabaseConnection):
@@ -34,7 +36,7 @@ class TransactionManagements(DatabaseConnection):
                 data = (Name,)
 
                 result = self.execute_select_query(query,data)
-                return result[0]
+                return result
             else:
                 return {'Error':'Please provide valid data to insert.'}
 
@@ -52,21 +54,15 @@ class TransactionManagements(DatabaseConnection):
             return {'Error':'Please provide valid data to insert.'}
         else:
             if isinstance(Name,str):
-                query = 'SELECT * FROM PATRONS WHERE TITLE LIKE %s'
+                query = 'SELECT * FROM PATRONS WHERE Name = %s'
                 data = (Name,)
 
                 result = self.execute_select_query(query,data)
-                return result[0]
+                return result
             else:
                 return {'Error':'Please provide valid data to insert.'}
 
-    def InsertTransaction(self):
-        pass
-    
-    def updateTransaction(self):
-        pass
-
-    def CheckoutTransaction(self,Name,Title) -> Dict:
+    def CheckoutTransaction(self,NameofPaton,TitleofBook,TransactionID) -> Dict:
         '''
             CheckoutTransaction:
                 This Method is to use book and patron details methodsand then update the Transaction Table
@@ -75,15 +71,80 @@ class TransactionManagements(DatabaseConnection):
                 Title (str) : example : 'To Kill a Mockingbird'
                 Name (str): example : 'Lil wayne'    
         '''
-
-        patrondetails = self.FindPatronID(Name=Name)
-        if not patrondetails:
-            return {'Error', 'Patron details are not available in db.'}
+        self.connection.start_transaction()
+        try:
+            patrondetails = self.FindPatronID(Name=NameofPaton)
+            if not patrondetails:
+                raise CustomError('Patron details are not available in db.')
         
-        bookdetails = self.FindBookISBN(Name=Title)
-        if not bookdetails:
-            return {'Error', 'Books details are not available in db.'}
-        
-        # Insert the transaction in TRANSACTIONS Table
+            bookdetails = self.FindBookISBN(Name=TitleofBook)
+            if not bookdetails:
+                raise CustomError('Books details are not available in db.')
+            
+            patrondetailsID =patrondetails[0][0]
+            bookdetailsID= bookdetails[0][0]
 
-        # update the book status avilability to False
+            query = '''INSERT INTO TRANSACTIONS(TransactionID,BookISBN,PatronID,TransactionType,DateAndTime)
+                        VALUES (%s,%s,%s,%s,%s)
+                    '''
+            data = (TransactionID,bookdetailsID,patrondetailsID,'Checkout',datetime.datetime.now())
+
+            result =  self.execute_manipulation_query(query=query,data=data)
+            
+            if not result:
+                raise CustomError('Failed to do Transactions')
+            else:
+               query = '''UPDATE BOOKS SET AvailabiltyStatus = False WHERE ISBN = %s'''
+               data = (bookdetailsID,)
+               result =  self.execute_manipulation_query(query=query,data=data) 
+               
+               if result:
+                    return {'Info','Transaction Successfull'} 
+               
+        except Exception as e:
+            print(f"Error: {e}")
+            self.connection.rollback()
+
+    def ReturnTransaction(self,NameofPaton,TitleofBook,TransactionID) -> Dict:
+        '''
+            ReturnTransaction:
+                This Method is to use book and patron details methodsand then update the Transaction Table
+
+            Parameters:
+                Title (str) : example : 'To Kill a Mockingbird'
+                Name (str): example : 'Lil wayne'    
+        '''
+        self.connection.start_transaction()
+        try:
+            patrondetails = self.FindPatronID(Name=NameofPaton)
+            if not patrondetails:
+                raise CustomError('Patron details are not available in db.')
+        
+            bookdetails = self.FindBookISBN(Name=TitleofBook)
+            if not bookdetails:
+                raise CustomError('Books details are not available in db.')
+            
+            patrondetailsID =patrondetails[0][0]
+            bookdetailsID= bookdetails[0][0]
+
+            query = '''INSERT INTO TRANSACTIONS(TransactionID,BookISBN,PatronID,TransactionType,DateAndTime)
+                        VALUES (%s,%s,%s,%s,%s)
+                    '''
+            data = (TransactionID,bookdetailsID,patrondetailsID,'Return',datetime.datetime.now())
+
+            result =  self.execute_manipulation_query(query=query,data=data)
+            
+            if not result:
+                raise CustomError('Failed to do Transactions')
+            else:
+               query = '''UPDATE BOOKS SET AvailabiltyStatus = True WHERE ISBN = %s'''
+               data = (bookdetailsID,)
+               result =  self.execute_manipulation_query(query=query,data=data) 
+               
+               if result:
+                    return {'Info','Transaction Successfull'} 
+               
+        except Exception as e:
+            print(f"Error: {e}")
+            self.connection.rollback()        
+                        
